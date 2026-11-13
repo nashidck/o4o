@@ -1,0 +1,574 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum RetailerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  PUBLISHED
+  REJECTED
+  SCHEDULED
+  EXPIRED
+  ARCHIVED
+}
+
+enum ProcessingStatus {
+  UPLOADING
+  QUEUED
+  PROCESSING
+  REVIEW
+  READY
+  FAILED
+}
+
+enum Verification {
+  UNVERIFIED
+  VERIFIED
+  REJECTED
+}
+
+model Location {
+  id         String @id @default(cuid())
+  code       String @unique
+  name       String
+  nameMl     String?
+  kind       String
+  parentId   String?
+  parent     Location? @relation("LocationTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children   Location[] @relation("LocationTree")
+  latitude   Float?
+  longitude  Float?
+  active     Boolean @default(true)
+  branches   Branch[]
+  campaignScopes CampaignRegion[]
+  offerScopes OfferRegion[]
+  couponScopes CouponRegion[]
+  preferences Preference[]
+  postalCodes PostalCode[]
+  @@index([parentId, active])
+  @@index([name])
+}
+
+model PostalCode {
+  code String
+  locationId String
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  @@id([code, locationId])
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  name String
+  role Role @default(CUSTOMER)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  emailVerifiedAt DateTime?
+  sessions Session[]
+  memberships RetailerMember[]
+  preference Preference?
+  follows Follow[]
+  savedOffers SavedOffer[]
+  favouriteProducts FavouriteProduct[]
+  lists ShoppingList[]
+  listMemberships ListMember[]
+  notifications Notification[]
+  auditLogs AuditLog[]
+  recoveryTokens RecoveryToken[]
+}
+
+model Session {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  csrfHash String
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([expiresAt])
+}
+
+model RecoveryToken {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  purpose String @default("RECOVERY")
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([expiresAt])
+}
+
+model Preference {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId String?
+  location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  language String @default("en")
+  theme String @default("system")
+  notifications Boolean @default(true)
+}
+
+model Category {
+  id String @id @default(cuid())
+  slug String @unique
+  name String
+  nameMl String?
+  parentId String?
+  parent Category? @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+  active Boolean @default(true)
+  position Int @default(0)
+  products Product[]
+  retailers RetailerCategory[]
+}
+
+model Retailer {
+  id String @id @default(cuid())
+  slug String @unique
+  name String
+  description String @default("")
+  logoUrl String?
+  coverUrl String?
+  website String?
+  status RetailerStatus @default(PENDING)
+  verifiedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branches Branch[]
+  memberships RetailerMember[]
+  categories RetailerCategory[]
+  campaigns Campaign[]
+  offers Offer[]
+  coupons Coupon[]
+  follows Follow[]
+  advertisements Advertisement[]
+}
+
+model RetailerCategory {
+  retailerId String
+  categoryId String
+  retailer Retailer @relation(fields: [retailerId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  @@id([retailerId, categoryId])
+}
+
+model RetailerMember {
+  retailerId String
+  userId String
+  role String @default("EDITOR")
+  retailer Retailer @relation(fields: [retailerId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([retailerId, userId])
+  @@index([userId])
+}
+
+model Branch {
+  id String @id @default(cuid())
+  retailerId String
+  retailer Retailer @relation(fields: [retailerId], references: [id], onDelete: Restrict)
+  locationId String
+  location Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  name String
+  address String
+  postalCode String?
+  phone String?
+  latitude Float?
+  longitude Float?
+  openingHours Json?
+  active Boolean @default(true)
+  campaigns CampaignBranch[]
+  offers OfferBranch[]
+  coupons CouponBranch[]
+  @@index([locationId, active])
+  @@index([retailerId, active])
+}
+
+model Campaign {
+  id String @id @default(cuid())
+  slug String @unique
+  retailerId String
+  retailer Retailer @relation(fields: [retailerId], references: [id], onDelete: Restrict)
+  title String
+  description String @default("")
+  startsAt DateTime
+  endsAt DateTime
+  status CampaignStatus @default(DRAFT)
+  version Int @default(1)
+  rejectionReason String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  regions CampaignRegion[]
+  branches CampaignBranch[]
+  flyers Flyer[]
+  offers Offer[]
+  coupons Coupon[]
+  revisions CampaignRevision[]
+  moderations Moderation[]
+  @@index([status, startsAt, endsAt])
+  @@index([retailerId, status])
+}
+
+model CampaignRevision {
+  id String @id @default(cuid())
+  campaignId String
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  version Int
+  payload Json
+  createdAt DateTime @default(now())
+  @@unique([campaignId, version])
+}
+
+model CampaignRegion {
+  campaignId String
+  locationId String
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  @@id([campaignId, locationId])
+  @@index([locationId])
+}
+
+model CampaignBranch {
+  campaignId String
+  branchId String
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  @@id([campaignId, branchId])
+  @@index([branchId])
+}
+
+model Flyer {
+  id String @id @default(cuid())
+  campaignId String
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  originalKey String @unique
+  sha256 String?
+  filename String
+  mimeType String
+  byteSize Int
+  pageCount Int @default(0)
+  status ProcessingStatus @default(UPLOADING)
+  error String?
+  downloadAllowed Boolean @default(false)
+  createdAt DateTime @default(now())
+  pages FlyerPage[]
+  @@index([campaignId, status])
+  @@index([sha256])
+}
+
+model FlyerPage {
+  id String @id @default(cuid())
+  flyerId String
+  flyer Flyer @relation(fields: [flyerId], references: [id], onDelete: Cascade)
+  number Int
+  imageKey String
+  thumbnailKey String
+  width Int
+  height Int
+  text String @default("")
+  regions ProductRegion[]
+  @@unique([flyerId, number])
+}
+
+model ProductRegion {
+  id String @id @default(cuid())
+  pageId String
+  page FlyerPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  x Float
+  y Float
+  width Float
+  height Float
+  extractedText String
+  candidatePrice Decimal? @db.Decimal(12,2)
+  confidence Float?
+  verification Verification @default(UNVERIFIED)
+  offerId String?
+  offer Offer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
+}
+
+model Brand {
+  id String @id @default(cuid())
+  name String @unique
+  products Product[]
+}
+
+model Product {
+  id String @id @default(cuid())
+  slug String @unique
+  name String
+  nameMl String?
+  description String @default("")
+  brandId String?
+  brand Brand? @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  categoryId String
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  keywords String[]
+  imageUrl String?
+  variants ProductVariant[]
+  favourites FavouriteProduct[]
+}
+
+model ProductVariant {
+  id String @id @default(cuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  label String
+  quantity Decimal @db.Decimal(12,3)
+  unit String
+  packaging String
+  identifiers ProductIdentifier[]
+  offers Offer[]
+  listItems ListItem[]
+  @@unique([productId, label, quantity, unit, packaging])
+}
+
+model ProductIdentifier {
+  id String @id @default(cuid())
+  variantId String
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  type String
+  value String
+  @@unique([type, value])
+}
+
+model Offer {
+  id String @id @default(cuid())
+  retailerId String
+  retailer Retailer @relation(fields: [retailerId], references: [id], onDelete: Restrict)
+  campaignId String
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  variantId String
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  originalPrice Decimal? @db.Decimal(12,2)
+  price Decimal @db.Decimal(12,2)
+  discountPercent Int? @default(dbgenerated())
+  currency String @default("INR")
+  startsAt DateTime
+  endsAt DateTime
+  verification Verification @default(UNVERIFIED)
+  verifiedAt DateTime?
+  verifiedBy String?
+  createdAt DateTime @default(now())
+  branches OfferBranch[]
+  regions OfferRegion[]
+  hotspots ProductRegion[]
+  savedBy SavedOffer[]
+  @@index([verification, startsAt, endsAt])
+  @@index([variantId, price])
+  @@index([retailerId])
+}
+
+model OfferBranch {
+  offerId String
+  branchId String
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  @@id([offerId, branchId])
+}
+
+model OfferRegion {
+  offerId String
+  locationId String
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  @@id([offerId, locationId])
+}
+
+model Coupon {
+  id String @id @default(cuid())
+  retailerId String
+  retailer Retailer @relation(fields: [retailerId], references: [id], onDelete: Restrict)
+  campaignId String?
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  title String
+  code String?
+  description String
+  discountType String
+  discountValue Decimal @db.Decimal(12,2)
+  minimumPurchase Decimal? @db.Decimal(12,2)
+  maximumDiscount Decimal? @db.Decimal(12,2)
+  startsAt DateTime
+  endsAt DateTime
+  instructions String
+  terms String
+  active Boolean @default(false)
+  restrictions CouponRestriction[]
+  regions CouponRegion[]
+  branches CouponBranch[]
+  @@index([active, endsAt])
+}
+
+model CouponRestriction {
+  id String @id @default(cuid())
+  couponId String
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  type String
+  value String
+}
+
+model CouponRegion {
+  couponId String
+  locationId String
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  @@id([couponId, locationId])
+}
+
+model CouponBranch {
+  couponId String
+  branchId String
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  @@id([couponId, branchId])
+}
+
+model Follow {
+  userId String
+  retailerId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  retailer Retailer @relation(fields: [retailerId], references: [id], onDelete: Cascade)
+  @@id([userId, retailerId])
+}
+
+model SavedOffer {
+  userId String
+  offerId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  @@id([userId, offerId])
+}
+
+model FavouriteProduct {
+  userId String
+  productId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@id([userId, productId])
+}
+
+model ShoppingList {
+  id String @id @default(cuid())
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name String
+  createdAt DateTime @default(now())
+  version Int @default(1)
+  members ListMember[]
+  items ListItem[]
+}
+
+model ListMember {
+  listId String
+  userId String
+  list ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role String @default("EDITOR")
+  @@id([listId, userId])
+}
+
+model ListItem {
+  id String @id @default(cuid())
+  listId String
+  list ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  variantId String?
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  name String
+  quantity Decimal @default(1) @db.Decimal(12,3)
+  note String @default("")
+  purchased Boolean @default(false)
+}
+
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String
+  body String
+  href String?
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  dedupeKey String? @unique
+  @@index([userId, createdAt])
+}
+
+model Advertisement {
+  id String @id @default(cuid())
+  retailerId String?
+  retailer Retailer? @relation(fields: [retailerId], references: [id], onDelete: SetNull)
+  advertiser String
+  title String
+  creativeUrl String
+  targetUrl String
+  placement String
+  regionIds String[]
+  budget Decimal? @db.Decimal(12,2)
+  startsAt DateTime
+  endsAt DateTime
+  active Boolean @default(false)
+}
+
+model ContentBlock {
+  id String @id @default(cuid())
+  key String @unique
+  title String
+  titleMl String?
+  description String
+  descriptionMl String?
+  position Int @default(0)
+  active Boolean @default(true)
+  config Json
+}
+
+model AnalyticsEvent {
+  id String @id @default(cuid())
+  type String
+  entityId String
+  retailerId String?
+  locationId String?
+  createdAt DateTime @default(now())
+  @@index([retailerId, createdAt])
+  @@index([type, entityId])
+}
+
+model Moderation {
+  id String @id @default(cuid())
+  campaignId String
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  actorId String
+  decision String
+  reason String?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  actorId String?
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action String
+  entityType String
+  entityId String
+  metadata Json?
+  createdAt DateTime @default(now())
+  @@index([entityType, entityId, createdAt])
+}

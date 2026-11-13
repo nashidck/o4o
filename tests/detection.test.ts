@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import{detectCandidates}from'../apps/worker/src/detection';
+const header='level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext';
+test('OCR proposes bounded currency regions without marking them verified',()=>{const tsv=[header,'5\t1\t1\t1\t1\t1\t10\t20\t20\t10\t85\tRice','5\t1\t1\t1\t1\t2\t35\t20\t10\t10\t90\tRs.','5\t1\t1\t1\t1\t3\t50\t20\t30\t10\t80\t75.50'].join('\n');const candidates=detectCandidates(tsv,100,100);assert.equal(candidates.length,1);assert.equal(candidates[0].candidatePrice,'75.50');assert.equal(candidates[0].x,.1);assert.equal(candidates[0].width,.7);assert.equal('verification' in candidates[0],false);});
+test('OCR does not treat arbitrary quantities as prices',()=>{const tsv=[header,'5\t1\t1\t1\t1\t1\t10\t20\t20\t10\t85\t1000g'].join('\n');assert.equal(detectCandidates(tsv,100,100).length,0);});

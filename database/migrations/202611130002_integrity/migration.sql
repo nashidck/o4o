@@ -1,0 +1,16 @@
+ALTER TABLE "Campaign" ADD CONSTRAINT "Campaign_valid_window" CHECK ("endsAt" > "startsAt");
+ALTER TABLE "Offer" ADD CONSTRAINT "Offer_valid_window" CHECK ("endsAt" > "startsAt");
+ALTER TABLE "Offer" ADD CONSTRAINT "Offer_valid_prices" CHECK ("price" > 0 AND ("originalPrice" IS NULL OR "originalPrice" >= "price"));
+ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_valid_window" CHECK ("endsAt" > "startsAt");
+ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_valid_value" CHECK ("discountValue" > 0 AND ("discountType" <> 'PERCENT' OR "discountValue" <= 100));
+ALTER TABLE "ProductVariant" ADD CONSTRAINT "Variant_positive_quantity" CHECK ("quantity" > 0);
+ALTER TABLE "ListItem" ADD CONSTRAINT "ListItem_positive_quantity" CHECK ("quantity" > 0);
+ALTER TABLE "ProductRegion" ADD CONSTRAINT "ProductRegion_valid_box" CHECK ("x" >= 0 AND "y" >= 0 AND "width" > 0 AND "height" > 0 AND "x" + "width" <= 1.000001 AND "y" + "height" <= 1.000001);
+ALTER TABLE "Branch" ADD CONSTRAINT "Branch_valid_coordinates" CHECK (("latitude" IS NULL AND "longitude" IS NULL) OR ("latitude" BETWEEN -90 AND 90 AND "longitude" BETWEEN -180 AND 180));
+CREATE INDEX "Branch_coordinates_idx" ON "Branch" ("latitude", "longitude") WHERE "active" = true;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX "Product_name_trgm" ON "Product" USING GIN ("name" gin_trgm_ops);
+CREATE INDEX "Product_nameMl_trgm" ON "Product" USING GIN ("nameMl" gin_trgm_ops);
+CREATE INDEX "Retailer_name_trgm" ON "Retailer" USING GIN ("name" gin_trgm_ops);
+CREATE INDEX "Campaign_title_trgm" ON "Campaign" USING GIN ("title" gin_trgm_ops);
+CREATE INDEX "FlyerPage_text_search" ON "FlyerPage" USING GIN (to_tsvector('simple', "text"));

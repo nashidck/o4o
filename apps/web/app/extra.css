@@ -1,0 +1,353 @@
+.mobile-tools {
+  display: none;
+}
+[hidden] {
+  display: none !important;
+}
+.verification-note {
+  grid-column: 1/-1;
+  padding: 15px;
+  background: var(--soft);
+  border-radius: 6px;
+}
+.verification-note p {
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.advanced-filters {
+  position: relative;
+  z-index: 12;
+}
+.advanced-filters > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 11px;
+  font-size: 11px;
+}
+.filter-panel {
+  position: absolute;
+  top: 45px;
+  left: 0;
+  width: 280px;
+  padding: 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  border-radius: 7px;
+}
+.filters {
+  position: relative;
+  flex-wrap: wrap;
+}
+.filter-panel input {
+  width: 100%;
+}
+.filter-panel select {
+  width: 100%;
+  max-width: 100%;
+  font-size: 12px;
+}
+.filter-panel .button {
+  margin-top: 0;
+}
+:lang(ml) .hero h1 {
+  font-size: clamp(27px, 3.4vw, 47px);
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+}
+:lang(ml) h2 {
+  line-height: 1.65;
+  letter-spacing: 0;
+}
+:lang(ml) .pill {
+  letter-spacing: 0;
+  font-size: 9px;
+}
+.offer-body h3,
+.retailer-info h3 {
+  overflow-wrap: anywhere;
+}
+.item-editor {
+  font-size: 10px;
+  text-decoration: none;
+  margin-top: 5px;
+}
+.item-editor summary {
+  padding: 3px 0;
+}
+.campaign-editor {
+  margin-top: 8px;
+  max-width: 420px;
+}
+.campaign-editor input,
+.campaign-editor textarea {
+  width: 100%;
+}
+.list-item:has(.item-editor[open]) {
+  align-items: start;
+}
+.management-row > div {
+  min-width: 0;
+}
+.management-row:has(.campaign-editor[open]) {
+  display: block;
+}
+.management-row:has(.campaign-editor[open]) .row-actions {
+  margin-top: 15px;
+}
+@media (max-width: 640px) {
+  :lang(ml) .hero h1 {
+    font-size: 28px;
+    line-height: 1.6;
+    letter-spacing: -0.5px;
+  }
+  :lang(ml) .hero-ctas {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  :lang(ml) .hero-ctas .button {
+    font-size: 10px;
+  }
+  :lang(ml) .hero-secondary {
+    font-size: 9px;
+  }
+  :lang(ml) .hero-note {
+    font-size: 7px;
+  }
+  :lang(ml) h2 {
+    font-size: 19px;
+  }
+  :lang(ml) .subtle-link {
+    font-size: 8px;
+  }
+  .preferences {
+    grid-template-columns: 1fr;
+  }
+  .management-row .row-actions {
+    margin-top: 12px;
+  }
+}
+.nearby-map {
+  height: 420px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  margin: 25px 0;
+}
+.map-fallback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  padding: 20px;
+  background: var(--soft);
+  border-radius: 7px;
+  margin-top: 20px;
+}
+.catalogue-review {
+  max-width: 100%;
+  width: 100%;
+  margin-top: 15px;
+  font-size: 12px;
+}
+.catalogue-review > img {
+  display: block;
+  max-height: 550px;
+  object-fit: contain;
+  width: 100%;
+  margin: 18px 0;
+}
+.catalogue-review pre {
+  white-space: pre-wrap;
+  font-size: 10px;
+  max-height: 200px;
+  overflow: auto;
+  padding: 15px;
+  background: var(--soft);
+}
+summary {
+  cursor: pointer;
+  padding: 10px 0;
+  color: var(--green);
+}
+.processing-error {
+  color: #9b5540;
+  font-size: 11px;
+}
+.preferences {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.preferences .check-label {
+  grid-column: 1/-1;
+  flex-direction: row;
+  align-items: center;
+}
+.preferences .check-label input {
+  width: auto;
+}
+.preferences .outline-button {
+  justify-self: start;
+}
+.viewer-message {
+  padding: 12px 20px;
+  font-size: 12px;
+  background: var(--paper);
+}
+.sponsored-banner {
+  display: block;
+}
+.management-row:has(.catalogue-review),
+.management-row:has(.content-editor) {
+  display: block;
+}
+.management-row:has(.catalogue-review) > div:first-child {
+  width: 100%;
+}
+.search-suggestions {
+  position: absolute;
+  z-index: 20;
+  top: 48px;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+}
+.search-suggestions a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 10px;
+  font-size: 11px;
+}
+.search-suggestions a:hover {
+  background: var(--soft);
+}
+.search-suggestions small {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.header-search {
+  position: relative;
+}
+.sponsored-banner {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 20px 0;
+  overflow: hidden;
+  background: var(--paper);
+}
+.sponsored-banner img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+}
+.sponsored-banner > span {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: var(--paper);
+  padding: 5px 8px;
+  border-radius: 3px;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.sponsored-banner h3 {
+  padding: 15px 20px;
+  font-size: 15px;
+}
+.content-editor {
+  margin-top: 15px;
+}
+.content-editor textarea {
+  min-height: 90px;
+}
+.hotspot-editor {
+  margin: 15px 0;
+  padding: 15px;
+  background: var(--soft);
+  border-radius: 5px;
+}
+.hotspot-editor .inline-form {
+  margin: 10px 0;
+}
+.hotspot-editor input {
+  width: 70px;
+  min-width: 55px;
+}
+.hotspot-editor label {
+  font-size: 10px;
+}
+.hotspot-editor .inline-form input[name="offerId"] {
+  min-width: 180px;
+  flex: 1;
+}
+@media (max-width: 640px) {
+  .header-main {
+    height: auto;
+    padding: 16px 0;
+    gap: 14px;
+  }
+  .header-search {
+    display: flex;
+    order: 5;
+    flex-basis: 100%;
+    padding: 10px 13px;
+    border-radius: 5px;
+  }
+  .header-search input {
+    font-size: 11px;
+  }
+  .header-search > svg {
+    width: 16px;
+  }
+  .header-search kbd {
+    display: none;
+  }
+  .mobile-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 5px 0;
+  }
+  .mobile-tools > a {
+    margin-left: auto;
+  }
+  .mobile-tools .outline-button {
+    font-size: 10px;
+  }
+  .hero h1 {
+    font-size: 41px;
+  }
+  .hero-copy {
+    padding-inline: 24px;
+  }
+  .mobile-tools .outline-button {
+    padding: 8px 10px;
+  }
+  .viewer-toolbar input {
+    margin-left: 0;
+  }
+  .search-suggestions {
+    top: 43px;
+  }
+  .hero-note {
+    font-size: 7px;
+  }
+}
